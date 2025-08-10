@@ -30,7 +30,7 @@ func NewTask(description string) (*Task, error) {
 	//TrimSpace est plus adapter car il gère automatiquement les espaces et les tabs
 	desc := strings.TrimSpace(description)
 	// on test que la description n'est pas vide
-	if desc == "" {
+	if len(desc) == 0 {
 		// on retourne une task vide et le message d'erreur déclarer dans la variable globale
 		// on peut retourner une valeur vide car on utilise un pointeur, on empêche ainsi la création de Task nul
 		return nil, ErrEmptyDescription
@@ -50,4 +50,30 @@ func NewTask(description string) (*Task, error) {
 	}
 
 	return t, nil
+}
+
+// on utilsie le receiver pour permettre d'accéder à la Task et ses fileds.
+func (t *Task) UpdateDescription(description string) error {
+	desc := strings.TrimSpace(description)
+	// on fait le check de la longeur après le trim
+	if len(desc) == 0 {
+		return ErrEmptyDescription
+	}
+
+	// on accéde à la struct et on modifie les champs.
+	t.Description = desc
+	t.UpdatedAt = time.Now()
+	return nil
+}
+
+func (t *Task) MarkIsDone() error {
+	t.Status = "done"
+	t.UpdatedAt = time.Now()
+	return nil
+}
+
+func (t *Task) MarkIsProgress() error {
+	t.Status = "in_progress"
+	t.UpdatedAt = time.Now()
+	return nil
 }

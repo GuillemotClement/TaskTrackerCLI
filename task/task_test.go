@@ -1,6 +1,9 @@
 package task
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestCreateTask(t *testing.T) {
 	t.Run("should create a new task", func(t *testing.T) {
@@ -41,6 +44,89 @@ func TestCreateTask(t *testing.T) {
 
 		if err == nil {
 			t.Fatal("expected error for empty description, got nil")
+		}
+	})
+}
+
+func TestUpdateTask(t *testing.T) {
+	t.Run("should update a task", func(t *testing.T) {
+		// on commence par créer la nouvelle task
+		task, _ := NewTask("ma premiere task")
+		// on récupère l'ancienne date de mise à jour pour tester si la modif à bien été effectuer
+		oldUpdatedAt := task.UpdatedAt
+		// on viens faire l'update de la task en pointant sur la task
+		err := task.UpdateDescription("New description")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if task.Description != "New description" {
+			t.Errorf("expected description 'New description', got %q", task.Description)
+		}
+
+		// Renvoie true si la date sur laquelle tu l’appelles est postérieure à t.
+		// Renvoie false si elle est égale ou antérieure.
+		// permet de vérifier que la date à bien changer
+		if !task.UpdatedAt.After(oldUpdatedAt) {
+			t.Errorf("exected UpdatedAt to change")
+		}
+
+	})
+
+	t.Run("should throw error if description is empty", func(t *testing.T) {
+		task, _ := NewTask("Old description")
+
+		err := task.UpdateDescription("   ")
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		// Renvoie true si la date est la valeur zéro de time.Time (0001-01-01 00:00:00 UTC).
+		// En gros, ça veut dire que la date n’a pas été définie.
+		if !errors.Is(err, ErrEmptyDescription) {
+			t.Errorf("expected ErrEmptyDescription, got %v", err)
+		}
+	})
+}
+
+func TestMarkIsDone(t *testing.T) {
+	t.Run("Should set status Done", func(t *testing.T) {
+		task, _ := NewTask("Ma super task")
+
+		oldUpdatedAt := task.UpdatedAt
+
+		err := task.MarkIsDone()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if task.Status != "done" {
+			t.Errorf("expected status for the task 'done', got : %q", task.Status)
+		}
+
+		if !task.UpdatedAt.After(oldUpdatedAt) {
+			t.Errorf("exected UpdatedAt to change")
+		}
+	})
+}
+
+func TestMarkIsProgress(t *testing.T) {
+	t.Run("Should set status Done", func(t *testing.T) {
+		task, _ := NewTask("Ma super task")
+
+		oldUpdatedAt := task.UpdatedAt
+
+		err := task.MarkIsProgress()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if task.Status != "in_progress" {
+			t.Errorf("expected status for the task 'in_progress', got : %q", task.Status)
+		}
+
+		if !task.UpdatedAt.After(oldUpdatedAt) {
+			t.Errorf("exected UpdatedAt to change")
 		}
 	})
 }
