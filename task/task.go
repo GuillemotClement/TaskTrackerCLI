@@ -4,7 +4,14 @@ package task
 // le package main est utiliser uniquement pour le point d'entrée de l'application -> main.go
 
 // importation du package pour le time
-import "time"
+import (
+	"errors"
+	"strings"
+	"time"
+)
+
+// déclare une var globale pour le message d'erreur
+var ErrEmptyDescription = errors.New("description cannot be empty")
 
 // définition de la struct de la task
 // utiliser Time.time pour les champs de type date pour garder les méthodes lié aux dates
@@ -15,4 +22,32 @@ type Task struct {
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+// on utilise un pointeur car on veux modifer par la suite et ne pas copier l'intégralité.
+// amélioration des perf car on fait référence à un emplacement mémoire, et pas une copie de la struct
+func NewTask(description string) (*Task, error) {
+	//TrimSpace est plus adapter car il gère automatiquement les espaces et les tabs
+	desc := strings.TrimSpace(description)
+	// on test que la description n'est pas vide
+	if desc == "" {
+		// on retourne une task vide et le message d'erreur déclarer dans la variable globale
+		// on peut retourner une valeur vide car on utilise un pointeur, on empêche ainsi la création de Task nul
+		return nil, ErrEmptyDescription
+	}
+	// on déclare la date qui sera utiliser dans la struct pour les deux champs
+	// sinon on peut potentiellement avoir des valeurs différentes dans la struct pour les champs de date
+	now := time.Now()
+
+	// par convention, on utilise un autre nom de variable que la struct
+	// on fait référence au pointeur, permet de manipuler l'originale
+	t := &Task{
+		ID:          0,
+		Description: desc,
+		Status:      "todo",
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	return t, nil
 }
